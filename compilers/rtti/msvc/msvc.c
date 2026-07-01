@@ -34,9 +34,14 @@ static bool _rtti_msvc_is_typedescriptor_valid(const char* s, usize n) {
     return true;
 }
 
+static const char*
+_rtti_msvc_extract_classtag(RDReader* r, RDAddress locator_addr,
+                            const RTTICompleteObjectLocator* objlocator);
+
 static bool _rtti_msvc_walk_baseclassarray(
     RDContext* ctx, RDReader* r,
-    const RTTIClassHierarchyDescriptor* classdescriptor, RDAddress imagebase) {
+    const RTTIClassHierarchyDescriptor* classdescriptor, RDAddress imagebase,
+    const char* classtag) {
     RDAddress baseclassarray_va = imagebase + classdescriptor->pBaseClassArray;
 
     for(u32 i = 0; i < classdescriptor->numBaseClasses; i++) {
@@ -48,6 +53,8 @@ static bool _rtti_msvc_walk_baseclassarray(
 
         RDAddress bcd_va = imagebase + bcd_addr_val;
         if(!_rtti_msvc_segment_ok(ctx, bcd_va)) return false;
+
+        rd_library_type(ctx, entry_addr, "u32", 0, RD_TYPE_PTR);
 
         rd_reader_seek(r, bcd_va);
         RTTIBaseClassDescriptor basedescriptor;
@@ -71,6 +78,11 @@ static bool _rtti_msvc_walk_baseclassarray(
 
         rd_library_type(ctx, bcd_va, "RTTI_BaseClassDescriptor", 0,
                         RD_TYPE_NONE);
+
+        if(classtag) {
+            rd_library_name(ctx, bcd_va,
+                            rd_format("%s::__base_class", classtag));
+        }
     }
 
     return true;
@@ -107,8 +119,12 @@ static bool _rtti_msvc_check_completeobjectlocator_v0(
                                     sizeof(u32)))
         return false;
 
-    if(!_rtti_msvc_walk_baseclassarray(ctx, r, &classdescriptor, 0))
+    char* classtag = rd_strdup(_rtti_msvc_extract_classtag(r, 0, objlocator));
+
+    if(!_rtti_msvc_walk_baseclassarray(ctx, r, &classdescriptor, 0, classtag)) {
+        rd_free(classtag);
         return false;
+    }
 
     rd_library_type(ctx, typedescriptor_name, "char", n + 1, RD_TYPE_NONE);
 
@@ -118,7 +134,20 @@ static bool _rtti_msvc_check_completeobjectlocator_v0(
     rd_library_type(ctx, objlocator->pTypeDescriptor, "RTTI_TypeDescriptor", 0,
                     RD_TYPE_NONE);
 
-    return !rd_reader_has_error(r);
+    if(rd_reader_has_error(r)) {
+        rd_free(classtag);
+        return false;
+    }
+
+    if(classtag) {
+        rd_library_name(ctx, objlocator->pClassDescriptor,
+                        rd_format("%s::__rtti_class_hierarchy", classtag));
+        rd_library_name(ctx, objlocator->pTypeDescriptor,
+                        rd_format("%s::__rtti_type_descriptor", classtag));
+    }
+
+    rd_free(classtag);
+    return true;
 }
 
 static bool _rtti_msvc_check_completeobjectlocator_v1(
@@ -156,15 +185,34 @@ static bool _rtti_msvc_check_completeobjectlocator_v1(
            ctx, bca_va, (usize)classdescriptor.numBaseClasses * sizeof(u32)))
         return false;
 
-    if(!_rtti_msvc_walk_baseclassarray(ctx, r, &classdescriptor, imagebase))
+    char* classtag =
+        rd_strdup(_rtti_msvc_extract_classtag(r, locator_addr, objlocator));
+
+    if(!_rtti_msvc_walk_baseclassarray(ctx, r, &classdescriptor, imagebase,
+                                       classtag)) {
+        rd_free(classtag);
         return false;
+    }
 
     rd_library_type(ctx, typedescriptor_name, "char", n + 1, RD_TYPE_NONE);
     rd_library_type(ctx, cd_va, "RTTI_ClassHierarchyDescriptor", 0,
                     RD_TYPE_NONE);
     rd_library_type(ctx, td_va, "RTTI_TypeDescriptor64", 0, RD_TYPE_NONE);
 
-    return !rd_reader_has_error(r);
+    if(rd_reader_has_error(r)) {
+        rd_free(classtag);
+        return false;
+    }
+
+    if(classtag) {
+        rd_library_name(ctx, cd_va,
+                        rd_format("%s::__rtti_class_hierarchy", classtag));
+        rd_library_name(ctx, td_va,
+                        rd_format("%s::__rtti_type_descriptor", classtag));
+    }
+
+    rd_free(classtag);
+    return true;
 }
 
 static void _rtti_msvc_process_vtable(RDContext* ctx, RDReader* r,
@@ -202,10 +250,12 @@ static void _rtti_msvc_process_vtable(RDContext* ctx, RDReader* r,
 
             if(rd_get_type(ctx, vtable_entryaddr, &t) &&
                !strcmp(t.name, objlocator_type)) {
-                name = rd_format("%s::obj_locator", classtag_ptr);
+                name = rd_format("%s::__obj_locator", classtag_ptr);
                 rd_library_name(ctx, vtable_addr, name);
                 rd_library_type(ctx, vtable_addr, rd_integral_from_size(stride),
-                                0, RD_TYPE_NONE);
+                                0, RD_TYPE_PTR);
+
+                rd_add_xref(ctx, vtable_addr, vtable_entryaddr, RD_DR_ADDRESS);
             }
 
             break;
@@ -215,10 +265,11 @@ static void _rtti_msvc_process_vtable(RDContext* ctx, RDReader* r,
         rd_auto_function(ctx, vtable_entryaddr, name);
 
         // vtable entry
-        name = rd_format("%s::vtable_%" PRId32, classtag_ptr, index);
+        name = rd_format("%s::__vtable_%" PRId32, classtag_ptr, index);
         rd_library_name(ctx, vtable_addr, name);
         rd_library_type(ctx, vtable_addr, rd_integral_from_size(stride), 0,
-                        RD_TYPE_NONE);
+                        RD_TYPE_PTR);
+        rd_add_xref(ctx, vtable_addr, vtable_entryaddr, RD_DR_ADDRESS);
 
         slot += stride;
         index++;
@@ -367,8 +418,20 @@ static void _rtti_msvc_find_objlocators(RDContext* ctx, RDReader* r) {
                 }
             }
 
-            if(ok)
+            if(ok) {
+                char* classtag = rd_strdup(
+                    _rtti_msvc_extract_classtag(r, addr, &objlocator));
+
+                if(classtag) {
+                    rd_library_name(
+                        ctx, addr,
+                        rd_format("%s::__rtti_obj_locator", classtag));
+                }
+
+                rd_free(classtag);
+
                 addr = next;
+            }
             else
                 addr += sizeof(u32);
         }
