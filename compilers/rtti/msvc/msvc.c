@@ -168,45 +168,60 @@ static bool _rtti_msvc_check_completeobjectlocator_v1(
 }
 
 static void _rtti_msvc_process_vtable(RDContext* ctx, RDReader* r,
-                                      RDAddress vftable_addr,
-                                      const char* classtag, usize stride) {
-    RDAddress slot = vftable_addr;
+                                      RDAddress vtable_addr,
+                                      const char* classtag, usize stride,
+                                      const char* objlocator_type) {
+    RDAddress slot = vtable_addr;
     u32 index = 0;
 
     char* classtag_ptr = rd_strdup(classtag);
 
     while(true) {
         rd_reader_seek(r, slot);
-        RDAddress funcaddr;
+        RDAddress vtable_addr = (RDAddress)rd_reader_tell(r);
+        RDAddress vtable_entryaddr;
 
         if(stride == sizeof(u32)) {
             u32 addr;
             if(!rd_reader_read_le32(r, &addr)) break;
-            funcaddr = (RDAddress)addr;
+            vtable_entryaddr = (RDAddress)addr;
         }
         else {
             u64 addr;
             if(!rd_reader_read_le64(r, &addr)) break;
-            funcaddr = (RDAddress)addr;
+            vtable_entryaddr = (RDAddress)addr;
         }
 
-        const RDSegment* seg = rd_find_segment(ctx, funcaddr);
-        if(!seg || !(seg->perm & RD_SP_X)) break;
+        const RDSegment* seg = rd_find_segment(ctx, vtable_entryaddr);
+        if(!seg) break;
 
-        const char* name =
-            rd_format("%s::vfunc_%" PRIx64, classtag_ptr, funcaddr);
+        const char* name = NULL;
 
-        rd_auto_function(ctx, funcaddr, name);
+        if(!(seg->perm & RD_SP_X)) {
+            RDType t;
+
+            if(rd_get_type(ctx, vtable_entryaddr, &t) &&
+               !strcmp(t.name, objlocator_type)) {
+                name = rd_format("%s::obj_locator", classtag_ptr);
+                rd_library_name(ctx, vtable_addr, name);
+                rd_library_type(ctx, vtable_addr, rd_integral_from_size(stride),
+                                0, RD_TYPE_NONE);
+            }
+
+            break;
+        }
+
+        name = rd_format("%s::vfunc_%" PRIx64, classtag_ptr, vtable_entryaddr);
+        rd_auto_function(ctx, vtable_entryaddr, name);
+
+        // vtable entry
+        name = rd_format("%s::vtable_%" PRId32, classtag_ptr, index);
+        rd_library_name(ctx, vtable_addr, name);
+        rd_library_type(ctx, vtable_addr, rd_integral_from_size(stride), 0,
+                        RD_TYPE_NONE);
 
         slot += stride;
         index++;
-    }
-
-    if(index > 0) {
-        const char* name = rd_format("%s::vftable", classtag_ptr);
-        rd_library_name(ctx, vftable_addr, name);
-        rd_library_type(ctx, vftable_addr, rd_integral_from_size(stride), 0,
-                        RD_TYPE_NONE);
     }
 
     rd_free(classtag_ptr);
@@ -289,7 +304,7 @@ static void _rtti_msvc_find_vtables(RDContext* ctx, RDReader* r,
 
             if(ok && _rtti_msvc_addressvect_contains(locators, value)) {
 
-                RDAddress vftable_addr = slot + stride;
+                RDAddress vtable_addr = slot + stride;
 
                 // re-read the locator to recover its TypeDescriptor/classtag
                 rd_reader_seek(r, value);
@@ -299,8 +314,8 @@ static void _rtti_msvc_find_vtables(RDContext* ctx, RDReader* r,
                         _rtti_msvc_extract_classtag(r, value, &objlocator);
 
                     if(classtag) {
-                        _rtti_msvc_process_vtable(ctx, r, vftable_addr,
-                                                  classtag, stride);
+                        _rtti_msvc_process_vtable(ctx, r, vtable_addr, classtag,
+                                                  stride, objlocator_type);
                     }
                 }
             }
