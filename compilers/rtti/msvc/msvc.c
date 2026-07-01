@@ -197,7 +197,7 @@ static bool _rtti_msvc_check_completeobjectlocator_v1(
     rd_library_type(ctx, typedescriptor_name, "char", n + 1, RD_TYPE_NONE);
     rd_library_type(ctx, cd_va, "RTTI_ClassHierarchyDescriptor", 0,
                     RD_TYPE_NONE);
-    rd_library_type(ctx, td_va, "RTTI_TypeDescriptor64", 0, RD_TYPE_NONE);
+    rd_library_type(ctx, td_va, "RTTI_TypeDescriptor", 0, RD_TYPE_NONE);
 
     if(rd_reader_has_error(r)) {
         rd_free(classtag);
@@ -451,7 +451,7 @@ const RDAnalyzerPlugin RTTI_MSVC = {
     .level = RD_API_LEVEL,
     .id = "compiler_rtti_msvc",
     .name = "Decode MSVC RTTI",
-    .flags = RD_AF_SELECTED | RD_AF_RUNONCE,
+    .flags = RD_AF_RUNONCE,
     .order = 1000,
     .execute = rtti_msvc_execute,
 };
