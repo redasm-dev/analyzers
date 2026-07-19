@@ -249,7 +249,7 @@ static void _rtti_msvc_process_vtable(RDContext* ctx, RDReader* r,
             RDType t;
 
             if(rd_get_type(ctx, vtable_entryaddr, &t) &&
-               !strcmp(t.name, objlocator_type)) {
+               !strcmp(rd_typedef_name(t.def), objlocator_type)) {
                 name = rd_format("%s::__obj_locator", classtag_ptr);
                 rd_library_name(ctx, vtable_addr, name);
                 rd_library_type(ctx, vtable_addr, rd_integral_from_size(stride),

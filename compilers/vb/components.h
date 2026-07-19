@@ -8,4 +8,4 @@ typedef struct PEVBComponent {
     const char* const* events;
 } PEVBComponent;
 
-const RDKBObject* pe_vb_components_find(RDContext* ctx, const PEGUID* guid);
+const RDKBObject* vb_components_find(RDContext* ctx, const VBGUID* guid);

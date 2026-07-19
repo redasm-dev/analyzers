@@ -2,45 +2,45 @@
 
 #include <redasm/redasm.h>
 
-#define PE_VB_SIGNATURE_SIZE 4
-#define PE_VB_SIGNATURE "VB5!"
+#define VB_SIGNATURE_SIZE 4
+#define VB_SIGNATURE "VB5!"
 
-typedef struct PEGUID {
+typedef struct GUID {
     u32 data1;
     u16 data2;
     u16 data3;
     u8 data4[8];
-} PEGUID;
+} VBGUID;
 
-typedef u32 PELCID;
+typedef u32 VBLCID;
 
-typedef struct PEVBHeader {
-    char szVbMagic[PE_VB_SIGNATURE_SIZE]; // "VB5!"
-    u16 wRuntimeBuild;                    // Build of the VB6 Runtime
-    char szLangDll[14];                   // Language Extension DLL
-    char szSecLangDll[14];                // 2nd Language Extension DLL
-    u16 wRuntimeRevision;                 // Internal Runtime Revision
-    u32 dwLCID;                           // LCID of Language DLL
-    u32 dwSecLCID;                        // LCID of 2nd Language DLL
-    u32 lpSubMain;                        // Pointer to Sub Main Code
-    u32 lpProjectData;                    // Pointer to Project Data
-    u32 fMdlIntCtls;                      // VB Control Flags for IDs < 32
-    u32 fMdlIntCtls2;                     // VB Control Flags for IDs > 32
-    u32 dwThreadFlags;                    // Threading Mode
-    u32 dwThreadCount;                    // Threads to support in pool
-    u16 wFormCount;                       // Number of forms present
-    u16 wExternalCount;                   // Number of external controls
-    u32 dwThunkCount;                     // Number of thunks to create
-    u32 lpGuiTable;                       // Pointer to GUI Table
-    u32 lpExternalCompTable;              // Pointer to External Component Table
-    u32 lpComRegisterData;                // Pointer to COM Information
+typedef struct VBHeader {
+    char szVbMagic[VB_SIGNATURE_SIZE]; // "VB5!"
+    u16 wRuntimeBuild;                 // Build of the VB6 Runtime
+    char szLangDll[14];                // Language Extension DLL
+    char szSecLangDll[14];             // 2nd Language Extension DLL
+    u16 wRuntimeRevision;              // Internal Runtime Revision
+    u32 dwLCID;                        // LCID of Language DLL
+    u32 dwSecLCID;                     // LCID of 2nd Language DLL
+    u32 lpSubMain;                     // Pointer to Sub Main Code
+    u32 lpProjectData;                 // Pointer to Project Data
+    u32 fMdlIntCtls;                   // VB Control Flags for IDs < 32
+    u32 fMdlIntCtls2;                  // VB Control Flags for IDs > 32
+    u32 dwThreadFlags;                 // Threading Mode
+    u32 dwThreadCount;                 // Threads to support in pool
+    u16 wFormCount;                    // Number of forms present
+    u16 wExternalCount;                // Number of external controls
+    u32 dwThunkCount;                  // Number of thunks to create
+    u32 lpGuiTable;                    // Pointer to GUI Table
+    u32 lpExternalCompTable;           // Pointer to External Component Table
+    u32 lpComRegisterData;             // Pointer to COM Information
     u32 bszProjectDescription; // Offset to Project Description (base:VbHeader)
     u32 bszProjectExeName;     // Offset to Project EXE Name (base:VbHeader)
     u32 bszProjectHelpFile;    // Offset to Project Help File (base:VbHeader)
     u32 bszProjectName;        // Offset to Project Name (base:VbHeader)
-} PEVBHeader;
+} VBHeader;
 
-typedef struct PEVBProjectInfo {
+typedef struct VBProjectInfo {
     u32 dwVersion;              // Version
     u32 lpObjectTable;          // Pointer to the Object Table
     u32 dwNull;                 // Unused value after compilation.
@@ -53,25 +53,25 @@ typedef struct PEVBProjectInfo {
     u16 szPathInformation[264]; // Contains Path and ID string. < SP6
     u32 lpExternalTable;        // Pointer to External Table
     u32 dwExternalCount;        // Objects in the External Table
-} PEVBProjectInfo;
+} VBProjectInfo;
 
-typedef struct PEVBGuiTable {
+typedef struct VBGuiTable {
     u32 lpSectionHeader; // Address of section header
     u8 dwReserved[59];   // Unused Bytes
     u32 dwFormSize;      // Block size, describing the form and its controls
     u32 dwReserved1;
     u32 lpFormData; // Pointer to the block describing the form and its controls
     u32 dwReserved2;
-} PEVBGuiTable;
+} VBGuiTable;
 
-typedef struct PEVBObjectTable {
+typedef struct VBObjectTable {
     u32 lpHeapLink; // Always set to 0 after compiling (Unused)
     u32 lpExecProj; // Pointer to VB Project Exec COM Object
     u32 lpObjectTreeInfo;
     u32 dwReserved;       // Always set to -1 after compiling (Unused)
     u32 dwNull;           // (Unused)
     u32 lpProjectObject;  // Pointer to in-memory Project Data
-    PEGUID uuidObject;    // GUID of the Object Table
+    VBGUID uuidObject;    // GUID of the Object Table
     u16 fCompileState;    // Internal flag used during compilation
     u16 wTotalObjects;    // Total objects present in Project
     u16 wCompiledObjects; // Equal to above after compiling
@@ -81,13 +81,13 @@ typedef struct PEVBObjectTable {
     u32 lpIdeData;        // Flag/Pointer used in IDE only
     u32 lpIdeData2;       // Flag/Pointer used in IDE only
     u32 lpszProjectName;  // Pointer to Project Name
-    PELCID dwLcid;        // LCID of Project
-    PELCID dwLcid2;       // Alternate LCID of Project
+    VBLCID dwLcid;        // LCID of Project
+    VBLCID dwLcid2;       // Alternate LCID of Project
     u32 lpIdeData3;       // Flag/Pointer used in IDE only
     u32 dwIdentifier;     // Template Version of Structure
-} PEVBObjectTable;
+} VBObjectTable;
 
-typedef struct PEVBObjectTree {
+typedef struct VBObjectTree {
     u32 lpHeapLink;           // Always set to 0 after compiling (Unused)
     u32 lpObjectTable;        // Back-Pointer to the Object Table
     u32 dwReserved;           // Always set to -1 after compiling (Unused)
@@ -98,9 +98,9 @@ typedef struct PEVBObjectTree {
     u32 szProjectHelpFile;    // Pointer to Project Help File
     u32 dwReserved2;          // Always set to -1 after compiling (Unused)
     u32 dwHelpContextId;      // Help Context ID set in Project Settings
-} PEVBObjectTree;
+} VBObjectTree;
 
-typedef struct PEVBPublicObjectDescriptor {
+typedef struct VBPublicObjectDescriptor {
     u32 lpObjectInfo;   // Pointer to the VbObjectInfo/FormDescriptor
     u32 dwReserved;     // -1
     u32 lpPublicBytes;  // Pointer to Public Variable Size integers
@@ -113,9 +113,9 @@ typedef struct PEVBPublicObjectDescriptor {
     u32 bStaticVars;    // Offset to where to copy Static Variables
     u32 fObjectType;    // Flags defining the Object Type
     u32 dwNull;         // Not valid after compilation
-} PEVBPublicObjectDescriptor;
+} VBPublicObjectDescriptor;
 
-typedef struct PEVBObjectInfo {
+typedef struct VBObjectInfo {
     u16 wRefCount;       // Always 1 after compilation
     u16 wObjectIndex;    // Index of this Object in the public descriptor array
     u32 lpObjectTable;   // Pointer to the Object Table
@@ -133,10 +133,10 @@ typedef struct PEVBObjectInfo {
     u32 lpIdeData2;      // Valid in IDE only
     u32 lpIdeData3;      // Valid in IDE only
     u32 lpConstants;     // Pointer to Constants Pool
-} PEVBObjectInfo;
+} VBObjectInfo;
 
-typedef struct PEVBObjectInfoOptional {
-    PEVBObjectInfo base;
+typedef struct VBObjectInfoOptional {
+    VBObjectInfo base;
     u32 dwObjectGuids;      // How many GUIDs to Register. 2 = Designer
     u32 lpObjectGuid;       // Unique GUID of the Object?
     u32 dwNull;             // Unused
@@ -155,9 +155,9 @@ typedef struct PEVBObjectInfoOptional {
     u32 lpBasicClassObject; // Pointer to in-memory Class Objects
     u32 dwNull3;            // Unused
     u32 lpIdeData;          // Only valid in IDE
-} PEVBObjectInfoOptional;
+} VBObjectInfoOptional;
 
-typedef struct PEVBControlInfo {
+typedef struct VBControlInfo {
     u32 fControlType;   // Type of control
     u16 wEventCount;    // Number of Event Handlers supported
     u16 bWEventsOffset; // Offset in to Memory struct to copy Events
@@ -169,9 +169,9 @@ typedef struct PEVBControlInfo {
     u32 lpIdeData;      // Valid in IDE only
     u32 lpszName;       // Name of this Control
     u32 dwIndexCopy;    // Secondary Index ID of this Control
-} PEVBControlInfo;
+} VBControlInfo;
 
-typedef struct PEVBEventInfo {
+typedef struct VBEventInfo {
     u32 dwNull;
     u32 lpControlsList;   // back-pointer to VbControlInfo
     u32 lpFormDescriptor; // back-pointer to VbObjectInfoOptional
@@ -179,17 +179,16 @@ typedef struct PEVBEventInfo {
     u32 lpEVENT_SINK_AddRef;
     u32 lpEVENT_SINK_Release;
     // u32 lpEvents[1];
-} PEVBEventInfo;
+} VBEventInfo;
 
-bool pe_vb_read_guid(RDReader* r, PEGUID* v);
-bool pe_vb_read_header(RDReader* r, PEVBHeader* h);
-bool pe_vb_read_project_info(RDReader* r, PEVBProjectInfo* v);
-bool pe_vb_read_gui_table(RDReader* r, PEVBGuiTable* v);
-bool pe_vb_read_object_table(RDReader* r, PEVBObjectTable* v);
-bool pe_vb_read_object_tree(RDReader* r, PEVBObjectTree* v);
-bool pe_vb_read_public_object_descriptor(RDReader* r,
-                                         PEVBPublicObjectDescriptor* v);
-bool pe_vb_read_object_info(RDReader* r, PEVBObjectInfo* v);
-bool pe_vb_read_object_info_optional(RDReader* r, PEVBObjectInfoOptional* v);
-bool pe_vb_read_control_info(RDReader* r, PEVBControlInfo* v);
-bool pe_vb_read_event_info(RDReader* r, PEVBEventInfo* v);
+bool vb_read_guid(RDReader* r, VBGUID* v);
+bool vb_read_header(RDReader* r, VBHeader* h);
+bool vb_read_project_info(RDReader* r, VBProjectInfo* v);
+bool vb_read_gui_table(RDReader* r, VBGuiTable* v);
+bool vb_read_object_table(RDReader* r, VBObjectTable* v);
+bool vb_read_object_tree(RDReader* r, VBObjectTree* v);
+bool vb_read_public_object_descriptor(RDReader* r, VBPublicObjectDescriptor* v);
+bool vb_read_object_info(RDReader* r, VBObjectInfo* v);
+bool vb_read_object_info_optional(RDReader* r, VBObjectInfoOptional* v);
+bool vb_read_control_info(RDReader* r, VBControlInfo* v);
+bool vb_read_event_info(RDReader* r, VBEventInfo* v);

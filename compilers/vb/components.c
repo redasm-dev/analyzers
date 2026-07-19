@@ -1,7 +1,7 @@
 #include "components.h"
 #include <stdio.h>
 
-static const char* _pe_cv_guid_to_string(const PEGUID* guid) {
+static const char* _pe_cv_guid_to_string(const VBGUID* guid) {
     static char buffer[37]; // "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" + NUL
 
     snprintf(buffer, sizeof(buffer),
@@ -13,10 +13,10 @@ static const char* _pe_cv_guid_to_string(const PEGUID* guid) {
     return buffer;
 }
 
-const RDKBObject* pe_vb_components_find(RDContext* ctx, const PEGUID* guid) {
+const RDKBObject* vb_components_find(RDContext* ctx, const VBGUID* guid) {
     if(!guid) return NULL;
 
-    const RDKBObject* components = rd_kb_load(ctx, "pe/vb/components");
+    const RDKBObject* components = rd_kb_load(ctx, "compiler/vb/components");
     if(!components) return NULL;
 
     const char* guid_str = _pe_cv_guid_to_string(guid);

@@ -1,11 +1,11 @@
 #include "format.h"
 
-static bool _pe_vb_read_lcid(RDReader* r, PELCID* v) {
+static bool _pe_vb_read_lcid(RDReader* r, VBLCID* v) {
     rd_reader_read_le32(r, v);
     return !rd_reader_has_error(r);
 }
 
-bool pe_vb_read_guid(RDReader* r, PEGUID* v) {
+bool vb_read_guid(RDReader* r, VBGUID* v) {
     rd_reader_read_le32(r, &v->data1);
     rd_reader_read_le16(r, &v->data2);
     rd_reader_read_le16(r, &v->data3);
@@ -14,7 +14,7 @@ bool pe_vb_read_guid(RDReader* r, PEGUID* v) {
     return !rd_reader_has_error(r);
 }
 
-bool pe_vb_read_header(RDReader* r, PEVBHeader* v) {
+bool vb_read_header(RDReader* r, VBHeader* v) {
     rd_reader_read(r, v->szVbMagic, sizeof(v->szVbMagic));
     rd_reader_read_le16(r, &v->wRuntimeBuild);
     rd_reader_read(r, v->szLangDll, sizeof(v->szLangDll));
@@ -42,7 +42,7 @@ bool pe_vb_read_header(RDReader* r, PEVBHeader* v) {
     return !rd_reader_has_error(r);
 }
 
-bool pe_vb_read_project_info(RDReader* r, PEVBProjectInfo* v) {
+bool vb_read_project_info(RDReader* r, VBProjectInfo* v) {
     rd_reader_read_le32(r, &v->dwVersion);
     rd_reader_read_le32(r, &v->lpObjectTable);
     rd_reader_read_le32(r, &v->dwNull);
@@ -59,7 +59,7 @@ bool pe_vb_read_project_info(RDReader* r, PEVBProjectInfo* v) {
     return !rd_reader_has_error(r);
 }
 
-bool pe_vb_read_gui_table(RDReader* r, PEVBGuiTable* v) {
+bool vb_read_gui_table(RDReader* r, VBGuiTable* v) {
     rd_reader_read_le32(r, &v->lpSectionHeader);
     rd_reader_read(r, &v->dwReserved, sizeof(v->dwReserved));
     rd_reader_read_le32(r, &v->dwFormSize);
@@ -70,14 +70,14 @@ bool pe_vb_read_gui_table(RDReader* r, PEVBGuiTable* v) {
     return !rd_reader_has_error(r);
 }
 
-bool pe_vb_read_object_table(RDReader* r, PEVBObjectTable* v) {
+bool vb_read_object_table(RDReader* r, VBObjectTable* v) {
     rd_reader_read_le32(r, &v->lpHeapLink);
     rd_reader_read_le32(r, &v->lpExecProj);
     rd_reader_read_le32(r, &v->lpObjectTreeInfo);
     rd_reader_read_le32(r, &v->dwReserved);
     rd_reader_read_le32(r, &v->dwNull);
     rd_reader_read_le32(r, &v->lpProjectObject);
-    pe_vb_read_guid(r, &v->uuidObject);
+    vb_read_guid(r, &v->uuidObject);
     rd_reader_read_le16(r, &v->fCompileState);
     rd_reader_read_le16(r, &v->wTotalObjects);
     rd_reader_read_le16(r, &v->wCompiledObjects);
@@ -95,7 +95,7 @@ bool pe_vb_read_object_table(RDReader* r, PEVBObjectTable* v) {
     return !rd_reader_has_error(r);
 }
 
-bool pe_vb_read_object_tree(RDReader* r, PEVBObjectTree* v) {
+bool vb_read_object_tree(RDReader* r, VBObjectTree* v) {
     rd_reader_read_le32(r, &v->lpHeapLink);
     rd_reader_read_le32(r, &v->lpObjectTable);
     rd_reader_read_le32(r, &v->dwReserved);
@@ -110,8 +110,8 @@ bool pe_vb_read_object_tree(RDReader* r, PEVBObjectTree* v) {
     return !rd_reader_has_error(r);
 }
 
-bool pe_vb_read_public_object_descriptor(RDReader* r,
-                                         PEVBPublicObjectDescriptor* v) {
+bool vb_read_public_object_descriptor(RDReader* r,
+                                      VBPublicObjectDescriptor* v) {
     rd_reader_read_le32(r, &v->lpObjectInfo);
     rd_reader_read_le32(r, &v->dwReserved);
     rd_reader_read_le32(r, &v->lpPublicBytes);
@@ -128,7 +128,7 @@ bool pe_vb_read_public_object_descriptor(RDReader* r,
     return !rd_reader_has_error(r);
 }
 
-bool pe_vb_read_object_info(RDReader* r, PEVBObjectInfo* v) {
+bool vb_read_object_info(RDReader* r, VBObjectInfo* v) {
     rd_reader_read_le16(r, &v->wRefCount);
     rd_reader_read_le16(r, &v->wObjectIndex);
     rd_reader_read_le32(r, &v->lpObjectTable);
@@ -150,8 +150,8 @@ bool pe_vb_read_object_info(RDReader* r, PEVBObjectInfo* v) {
     return !rd_reader_has_error(r);
 }
 
-bool pe_vb_read_object_info_optional(RDReader* r, PEVBObjectInfoOptional* v) {
-    pe_vb_read_object_info(r, &v->base);
+bool vb_read_object_info_optional(RDReader* r, VBObjectInfoOptional* v) {
+    vb_read_object_info(r, &v->base);
     rd_reader_read_le32(r, &v->dwObjectGuids);
     rd_reader_read_le32(r, &v->lpObjectGuid);
     rd_reader_read_le32(r, &v->dwNull);
@@ -174,7 +174,7 @@ bool pe_vb_read_object_info_optional(RDReader* r, PEVBObjectInfoOptional* v) {
     return !rd_reader_has_error(r);
 }
 
-bool pe_vb_read_control_info(RDReader* r, PEVBControlInfo* v) {
+bool vb_read_control_info(RDReader* r, VBControlInfo* v) {
     rd_reader_read_le32(r, &v->fControlType);
     rd_reader_read_le16(r, &v->wEventCount);
     rd_reader_read_le16(r, &v->bWEventsOffset);
@@ -190,7 +190,7 @@ bool pe_vb_read_control_info(RDReader* r, PEVBControlInfo* v) {
     return !rd_reader_has_error(r);
 }
 
-bool pe_vb_read_event_info(RDReader* r, PEVBEventInfo* v) {
+bool vb_read_event_info(RDReader* r, VBEventInfo* v) {
     rd_reader_read_le32(r, &v->dwNull);
     rd_reader_read_le32(r, &v->lpControlsList);
     rd_reader_read_le32(r, &v->lpFormDescriptor);
