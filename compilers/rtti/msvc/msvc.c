@@ -451,7 +451,7 @@ const RDAnalyzerPlugin RTTI_MSVC = {
     .level = RD_API_LEVEL,
     .id = "compiler_rtti_msvc",
     .name = "Decode MSVC RTTI",
-    .flags = RD_AF_RUNONCE,
+    .flags = RD_AF_RUNONCE | RD_AF_EXPERIMENTAL,
     .order = 1000,
     .execute = rtti_msvc_execute,
 };
