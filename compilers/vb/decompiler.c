@@ -48,7 +48,8 @@ static void _vb_decompiler_decode(RDAddress address, const char* name,
         return;
 
     RDAddress event_ep = instrs[1].operands[0].addr;
-    rd_library_function(ctx, event_ep, name);
+    rd_set_function(ctx, event_ep);
+    rd_library_name(ctx, event_ep, name);
 }
 
 static void _vb_decompiler_events(const VBPublicObjectDescriptor* descr,
@@ -79,13 +80,13 @@ static void _vb_decompiler_events(const VBPublicObjectDescriptor* descr,
                     RD_TYPE_NONE);
 
     if(evinfo.lpEVENT_SINK_QueryInterface)
-        rd_library_function(ctx, evinfo.lpEVENT_SINK_QueryInterface, NULL);
+        rd_set_function(ctx, evinfo.lpEVENT_SINK_QueryInterface);
 
     if(evinfo.lpEVENT_SINK_AddRef)
-        rd_library_function(ctx, evinfo.lpEVENT_SINK_AddRef, NULL);
+        rd_set_function(ctx, evinfo.lpEVENT_SINK_AddRef);
 
     if(evinfo.lpEVENT_SINK_Release)
-        rd_library_function(ctx, evinfo.lpEVENT_SINK_Release, NULL);
+        rd_set_function(ctx, evinfo.lpEVENT_SINK_Release);
 
     const RDKBObject* events = rd_kbobject_get_array(c, "events");
 

@@ -262,7 +262,8 @@ static void _rtti_msvc_process_vtable(RDContext* ctx, RDReader* r,
         }
 
         name = rd_format("%s::vfunc_%" PRIx64, classtag_ptr, vtable_entryaddr);
-        rd_auto_function(ctx, vtable_entryaddr, name);
+        rd_set_function(ctx, vtable_entryaddr);
+        rd_auto_name(ctx, vtable_entryaddr, name);
 
         // vtable entry
         name = rd_format("%s::__vtable_%" PRId32, classtag_ptr, index);
