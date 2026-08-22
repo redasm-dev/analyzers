@@ -1,16 +1,16 @@
-#include "types.h"
+#include "rtti_types.h"
 
-bool rtti_msvc_read_completeobjectlocator(RDReader* r,
+bool msvc_rtti_read_completeobjectlocator(RDReader* r,
                                           RTTICompleteObjectLocator* v) {
     if(!rd_reader_read_le32(r, &v->signature)) return false;
-    if(v->signature > RTTI_MSVC_SIGNATURE_V1) return false;
+    if(v->signature > MSVC_RTTI_SIGNATURE_V1) return false;
 
     rd_reader_read_le32(r, &v->offset);
     rd_reader_read_le32(r, &v->cdOffset);
     rd_reader_read_le32(r, &v->pTypeDescriptor);
     rd_reader_read_le32(r, &v->pClassDescriptor);
 
-    if(!rd_reader_has_error(r) && v->signature == RTTI_MSVC_SIGNATURE_V1) {
+    if(!rd_reader_has_error(r) && v->signature == MSVC_RTTI_SIGNATURE_V1) {
         rd_reader_read_le32(r, &v->pSelf);
         return !rd_reader_has_error(r) && v->pSelf;
     }
@@ -19,7 +19,7 @@ bool rtti_msvc_read_completeobjectlocator(RDReader* r,
     return !rd_reader_has_error(r);
 }
 
-bool rtti_msvc_read_classhierarchydescriptor(RDReader* r,
+bool msvc_rtti_read_classhierarchydescriptor(RDReader* r,
                                              RTTIClassHierarchyDescriptor* v) {
     rd_reader_read_le32(r, &v->signature);
     rd_reader_read_le32(r, &v->attributes);
@@ -28,7 +28,7 @@ bool rtti_msvc_read_classhierarchydescriptor(RDReader* r,
     return !rd_reader_has_error(r);
 }
 
-bool rtti_msvc_read_baseclassdescriptor(RDReader* r,
+bool msvc_rtti_read_baseclassdescriptor(RDReader* r,
                                         RTTIBaseClassDescriptor* v) {
     rd_reader_read_le32(r, &v->pTypeDescriptor);
     rd_reader_read_le32(r, &v->numContainedBases);
@@ -37,7 +37,7 @@ bool rtti_msvc_read_baseclassdescriptor(RDReader* r,
     rd_reader_read_le32(r, (u32*)&v->where_vdisp);
     rd_reader_read_le32(r, &v->attributes);
 
-    if(!rd_reader_has_error(r) && (v->attributes & RTTI_MSVC_BCD_HASCHD))
+    if(!rd_reader_has_error(r) && (v->attributes & MSVC_RTTI_BCD_HASCHD))
         rd_reader_read_le32(r, &v->pClassDescriptor);
     else
         v->pClassDescriptor = 0;
@@ -45,13 +45,13 @@ bool rtti_msvc_read_baseclassdescriptor(RDReader* r,
     return !rd_reader_has_error(r);
 }
 
-bool rtti_msvc_read_typedescriptor32(RDReader* r, RTTITypeDescriptor32* v) {
+bool msvc_rtti_read_typedescriptor32(RDReader* r, RTTITypeDescriptor32* v) {
     rd_reader_read_le32(r, &v->pVFTable);
     rd_reader_read_le32(r, &v->spare);
     return !rd_reader_has_error(r) && !v->spare;
 }
 
-bool rtti_msvc_read_typedescriptor64(RDReader* r, RTTITypeDescriptor64* v) {
+bool msvc_rtti_read_typedescriptor64(RDReader* r, RTTITypeDescriptor64* v) {
     rd_reader_read_le64(r, &v->pVFTable);
     rd_reader_read_le64(r, &v->spare);
     return !rd_reader_has_error(r) && !v->spare;

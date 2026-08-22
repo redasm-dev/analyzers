@@ -2,4 +2,4 @@
 
 #include <redasm/redasm.h>
 
-extern const RDAnalyzerPlugin MSVC_RTTI;
+extern const RDAnalyzerPlugin MSVC_EH;
