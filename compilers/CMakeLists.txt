@@ -10,8 +10,8 @@ add_library(${PROJECT_NAME} SHARED)
 
 target_sources(${PROJECT_NAME}
     PRIVATE 
-        rtti/msvc/msvc.c
-        rtti/msvc/types.c
+        msvc/rtti.c
+        msvc/types.c
         vb/components.c
         vb/decompiler.c
         vb/format.c

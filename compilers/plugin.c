@@ -1,4 +1,4 @@
-#include "rtti/msvc/msvc.h"
+#include "msvc/rtti.h"
 #include "vb/decompiler.h"
 #include <redasm/redasm.h>
 

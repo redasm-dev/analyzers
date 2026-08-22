@@ -1,5 +1,5 @@
-#include "msvc.h"
-#include "rtti/msvc/types.h"
+#include "rtti.h"
+#include "msvc/types.h"
 #include <inttypes.h>
 #include <string.h>
 
