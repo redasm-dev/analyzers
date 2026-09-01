@@ -8,5 +8,3 @@ void rd_plugin_create(void) {
     rd_register_analyzer(&MSVC_EH);
     rd_register_analyzer(&VB_DECOMPILER);
 }
-
-const char* rd_plugin_version(void) { return "1.0"; }
