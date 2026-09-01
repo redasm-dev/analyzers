@@ -389,7 +389,6 @@ static void msvc_rtti_execute(RDContext* ctx) {
 }
 
 const RDAnalyzerPlugin MSVC_RTTI = {
-    .level = RD_API_LEVEL,
     .id = "compiler_msvc_rtti",
     .name = "Decode MSVC Runtime Type Information (RTTI)",
     .flags = RD_AF_RUNONCE | RD_AF_EXPERIMENTAL,

@@ -239,7 +239,6 @@ static void vb_decompiler_execute(RDContext* ctx) {
 }
 
 const RDAnalyzerPlugin VB_DECOMPILER = {
-    .level = RD_API_LEVEL,
     .id = "compiler_vb",
     .name = "Decompile VB5/6",
     .flags = RD_AF_SELECTED | RD_AF_RUNONCE,

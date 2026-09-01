@@ -423,7 +423,6 @@ static void msvc_eh_execute(RDContext* ctx) {
 }
 
 const RDAnalyzerPlugin MSVC_EH = {
-    .level = RD_API_LEVEL,
     .id = "compiler_msvc_eh",
     .name = "Decode MSVC Exception Handling Tables",
     .flags = RD_AF_RUNONCE | RD_AF_EXPERIMENTAL,
