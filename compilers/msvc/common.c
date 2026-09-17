@@ -36,20 +36,24 @@ bool msvc_rtti_addressslice_contains(RDAddressSlice locators,
 
 bool msvc_rtti_segment_ok(RDContext* ctx, RDAddress address) {
     const RDSegment* seg = rd_find_segment(ctx, address);
-    return seg && (seg->perm & RD_SP_R) && !(seg->perm & RD_SP_X);
+    return seg && rd_segment_has_perm(seg, RD_SP_R) &&
+           !rd_segment_has_perm(seg, RD_SP_X);
 }
 
 bool msvc_rtti_segment_exec_ok(RDContext* ctx, RDAddress address) {
     const RDSegment* seg = rd_find_segment(ctx, address);
-    return seg && (seg->perm & RD_SP_X);
+    return seg && rd_segment_has_perm(seg, RD_SP_X);
 }
 
 bool msvc_rtti_segment_fits(RDContext* ctx, RDAddress address, usize n) {
     const RDSegment* seg = rd_find_segment(ctx, address);
-    if(!seg || (!(seg->perm & RD_SP_R)) || seg->perm & RD_SP_X) return false;
+
+    if(!seg || !rd_segment_has_perm(seg, RD_SP_R) ||
+       rd_segment_has_perm(seg, RD_SP_X))
+        return false;
 
     // also guards overflow if size is bounded upstream
-    return (address + n) <= seg->end_address;
+    return (address + n) <= rd_segment_get_end(seg);
 }
 
 bool msvc_rtti_is_typedescriptor_valid(const char* s, usize n) {

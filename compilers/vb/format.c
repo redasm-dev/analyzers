@@ -9,16 +9,16 @@ bool vb_read_guid(RDReader* r, VBGUID* v) {
     rd_reader_read_le32(r, &v->data1);
     rd_reader_read_le16(r, &v->data2);
     rd_reader_read_le16(r, &v->data3);
-    rd_reader_read(r, v->data4, sizeof(v->data4));
+    rd_reader_read_exact(r, v->data4, sizeof(v->data4));
 
     return !rd_reader_has_error(r);
 }
 
 bool vb_read_header(RDReader* r, VBHeader* v) {
-    rd_reader_read(r, v->szVbMagic, sizeof(v->szVbMagic));
+    rd_reader_read_exact(r, v->szVbMagic, sizeof(v->szVbMagic));
     rd_reader_read_le16(r, &v->wRuntimeBuild);
-    rd_reader_read(r, v->szLangDll, sizeof(v->szLangDll));
-    rd_reader_read(r, v->szSecLangDll, sizeof(v->szSecLangDll));
+    rd_reader_read_exact(r, v->szLangDll, sizeof(v->szLangDll));
+    rd_reader_read_exact(r, v->szSecLangDll, sizeof(v->szSecLangDll));
     rd_reader_read_le16(r, &v->wRuntimeRevision);
     rd_reader_read_le32(r, &v->dwLCID);
     rd_reader_read_le32(r, &v->dwSecLCID);
@@ -52,7 +52,8 @@ bool vb_read_project_info(RDReader* r, VBProjectInfo* v) {
     rd_reader_read_le32(r, &v->lpThreadSpace);
     rd_reader_read_le32(r, &v->lpVbaSeh);
     rd_reader_read_le32(r, &v->lpNativeCode);
-    rd_reader_read(r, &v->szPathInformation, sizeof(v->szPathInformation));
+    rd_reader_read_exact(r, &v->szPathInformation,
+                         sizeof(v->szPathInformation));
     rd_reader_read_le32(r, &v->lpExternalTable);
     rd_reader_read_le32(r, &v->dwExternalCount);
 
@@ -61,7 +62,7 @@ bool vb_read_project_info(RDReader* r, VBProjectInfo* v) {
 
 bool vb_read_gui_table(RDReader* r, VBGuiTable* v) {
     rd_reader_read_le32(r, &v->lpSectionHeader);
-    rd_reader_read(r, &v->dwReserved, sizeof(v->dwReserved));
+    rd_reader_read_exact(r, &v->dwReserved, sizeof(v->dwReserved));
     rd_reader_read_le32(r, &v->dwFormSize);
     rd_reader_read_le32(r, &v->dwReserved1);
     rd_reader_read_le32(r, &v->lpFormData);

@@ -47,11 +47,13 @@ static void _msvc_eh_find_catchabletypes(RDContext* ctx, RDReader* r,
     const RDSegment** it;
     rd_slice_each(it, segments) {
         const RDSegment* seg = *it;
-        if(!(seg->perm & RD_SP_R) || (seg->perm & RD_SP_X)) continue;
+        if(!rd_segment_has_perm(seg, RD_SP_R) ||
+           rd_segment_has_perm(seg, RD_SP_X))
+            continue;
 
-        RDAddress addr = seg->start_address;
+        RDAddress addr = rd_segment_get_start(seg);
 
-        while(addr < seg->end_address) {
+        while(addr < rd_segment_get_end(seg)) {
             rd_reader_seek(r, addr);
 
             EHCatchableType ct;
@@ -108,11 +110,13 @@ static void _msvc_eh_find_catchabletypearrays(RDContext* ctx, RDReader* r,
     const RDSegment** it;
     rd_slice_each(it, segments) {
         const RDSegment* seg = *it;
-        if(!(seg->perm & RD_SP_R) || (seg->perm & RD_SP_X)) continue;
+        if(!rd_segment_has_perm(seg, RD_SP_R) ||
+           rd_segment_has_perm(seg, RD_SP_X))
+            continue;
 
-        RDAddress addr = seg->start_address;
+        RDAddress addr = rd_segment_get_start(seg);
 
-        while(addr < seg->end_address) {
+        while(addr < rd_segment_get_end(seg)) {
             rd_reader_seek(r, addr);
 
             EHCatchableTypeArrayHeader hdr;
@@ -165,11 +169,13 @@ static void _msvc_eh_find_throwinfos(RDContext* ctx, RDReader* r,
     const RDSegment** it;
     rd_slice_each(it, segments) {
         const RDSegment* seg = *it;
-        if(!(seg->perm & RD_SP_R) || (seg->perm & RD_SP_X)) continue;
+        if(!rd_segment_has_perm(seg, RD_SP_R) ||
+           rd_segment_has_perm(seg, RD_SP_X))
+            continue;
 
-        RDAddress addr = seg->start_address;
+        RDAddress addr = rd_segment_get_start(seg);
 
-        while(addr < seg->end_address) {
+        while(addr < rd_segment_get_end(seg)) {
             rd_reader_seek(r, addr);
 
             EHThrowInfo ti;
@@ -348,11 +354,13 @@ static void _msvc_eh_find_funcinfo_scan(RDContext* ctx, RDReader* r) {
     const RDSegment** it;
     rd_slice_each(it, segments) {
         const RDSegment* seg = *it;
-        if(!(seg->perm & RD_SP_R) || (seg->perm & RD_SP_X)) continue;
+        if(!rd_segment_has_perm(seg, RD_SP_R) ||
+           rd_segment_has_perm(seg, RD_SP_X))
+            continue;
 
-        RDAddress addr = seg->start_address;
+        RDAddress addr = rd_segment_get_start(seg);
 
-        while(addr < seg->end_address) {
+        while(addr < rd_segment_get_end(seg)) {
             RDAddress next = _msvc_eh_process_funcinfo(ctx, r, addr, 0);
             addr = next ? next : addr + sizeof(u32);
         }

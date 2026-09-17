@@ -223,7 +223,7 @@ static void _msvc_rtti_process_vtable(RDContext* ctx, RDReader* r,
 
         const char* name = NULL;
 
-        if(!(seg->perm & RD_SP_X)) {
+        if(!rd_segment_has_perm(seg, RD_SP_X)) {
             RDType t;
 
             if(rd_get_type(ctx, vtable_entryaddr, &t) &&
@@ -274,11 +274,13 @@ static void _msvc_rtti_find_vtables(RDContext* ctx, RDReader* r,
     const RDSegment** it;
     rd_slice_each(it, segments) {
         const RDSegment* seg = *it;
-        if((!(seg->perm & RD_SP_R)) || seg->perm & RD_SP_X) continue;
+        if(!rd_segment_has_perm(seg, RD_SP_R) ||
+           rd_segment_has_perm(seg, RD_SP_X))
+            continue;
 
-        RDAddress slot = seg->start_address;
+        RDAddress slot = rd_segment_get_start(seg);
 
-        while(slot + stride <= seg->end_address) {
+        while(slot + stride <= rd_segment_get_end(seg)) {
             rd_reader_seek(r, slot);
             RDAddress value;
             bool ok;
@@ -323,11 +325,13 @@ static void _msvc_rtti_find_objlocators(RDContext* ctx, RDReader* r) {
     const RDSegment** it;
     rd_slice_each(it, segments) {
         const RDSegment* seg = *it;
-        if((!(seg->perm & RD_SP_R)) || seg->perm & RD_SP_X) continue;
+        if(!rd_segment_has_perm(seg, RD_SP_R) ||
+           rd_segment_has_perm(seg, RD_SP_X))
+            continue;
 
-        RDAddress addr = seg->start_address;
+        RDAddress addr = rd_segment_get_start(seg);
 
-        while(addr < seg->end_address) {
+        while(addr < rd_segment_get_end(seg)) {
             rd_reader_seek(r, addr);
 
             RDAddress next = 0;
