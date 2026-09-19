@@ -18,7 +18,7 @@ target_sources(${PROJECT_NAME}
         vb/components.c
         vb/decompiler.c
         vb/format.c
-        plugin.c
+        module.c
 )
 
 target_include_directories(${PROJECT_NAME}
