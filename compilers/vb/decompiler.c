@@ -69,7 +69,7 @@ static void _vb_decompiler_events(const VBPublicObjectDescriptor* descr,
     rd_reader_seek(r, ctrlinfo->lpGuid);
     if(!vb_read_guid(r, &guid)) goto cleanup;
 
-    const RDKBObject* c = vb_components_find(ctx, &guid);
+    const RDDatum* c = vb_components_find(ctx, &guid);
     if(!c) goto cleanup;
 
     VBEventInfo evinfo;
@@ -88,15 +88,15 @@ static void _vb_decompiler_events(const VBPublicObjectDescriptor* descr,
     if(evinfo.lpEVENT_SINK_Release)
         rd_set_function(ctx, evinfo.lpEVENT_SINK_Release);
 
-    const RDKBObject* events = rd_kbobject_get_array(c, "events");
+    const RDDatum* events = rd_datum_get_array(c, "events");
 
-    const RDKBObject* it;
-    rd_kbobject_each(it, events) {
+    const RDDatum* it;
+    rd_datum_each(it, events) {
         u32 event_va;
         if(!rd_reader_read_le32(r, &event_va)) break;
         if(!event_va) continue;
 
-        const char* e = rd_kbobject_to_str(it);
+        const char* e = rd_datum_to_str(it);
         if(!e) break;
 
         const char* n = rd_format("%s_%s_%s", objname, ctrlname, e);

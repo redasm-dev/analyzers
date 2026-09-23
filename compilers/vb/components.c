@@ -13,12 +13,12 @@ static const char* _pe_cv_guid_to_string(const VBGUID* guid) {
     return buffer;
 }
 
-const RDKBObject* vb_components_find(RDContext* ctx, const VBGUID* guid) {
+const RDDatum* vb_components_find(RDContext* ctx, const VBGUID* guid) {
     if(!guid) return NULL;
 
-    const RDKBObject* components = rd_kb_load(ctx, "compiler/vb/components");
+    const RDDatum* components = rd_kb_load(ctx, "compiler/vb/components");
     if(!components) return NULL;
 
     const char* guid_str = _pe_cv_guid_to_string(guid);
-    return rd_kbobject_get_table(components, guid_str);
+    return rd_datum_get_table(components, guid_str);
 }
