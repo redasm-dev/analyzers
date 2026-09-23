@@ -97,6 +97,42 @@ static bool _pdb_read_directory(PDBFile* pdb) {
     return true;
 }
 
+static bool _pdb_open_file(PDBFile* out) {
+    if(!pdb_read_superblock(out->r, &out->super_block)) return false;
+    if(!pdb_check_rootsize(&out->super_block)) return false;
+    if(!pdb_check_rootpageindex(out->r, &out->super_block)) return false;
+    if(!pdb_check_pagesize(&out->super_block)) return false;
+    if(!pdb_check_numblocks(out->r, &out->super_block)) return false;
+
+    if(!_pdb_read_directory(out)) {
+        pdb_close(out);
+        return false;
+    }
+
+    PDBStream s = {0};
+    if(!pdb_read_stream_by_index(out, PDB_STREAM_INFO, &s)) return false;
+
+    bool ok = pdb_read_info_header(&s, &out->info);
+    pdb_stream_destroy(&s);
+
+    if(!ok) {
+        RD_LOG_FAIL("cannot read PDBInfoHeader");
+        return false;
+    }
+
+    out->guid = rd_strdup(
+        rd_format("%02X%02X%02X%02X%02X%02X%02X%02X"
+                  "%02X%02X%02X%02X%02X%02X%02X%02X",
+                  out->info.Guid[0], out->info.Guid[1], out->info.Guid[2],
+                  out->info.Guid[3], out->info.Guid[4], out->info.Guid[5],
+                  out->info.Guid[6], out->info.Guid[7], out->info.Guid[8],
+                  out->info.Guid[9], out->info.Guid[10], out->info.Guid[11],
+                  out->info.Guid[12], out->info.Guid[13], out->info.Guid[14],
+                  out->info.Guid[15]));
+
+    return true;
+}
+
 bool pdb_read_superblock(RDReader* r, PDBSuperBlock* out) {
     rd_reader_seek(r, 0);
 
@@ -197,47 +233,23 @@ void pdb_stream_destroy(PDBStream* s) {
 
 bool pdb_open(const char* path, PDBFile* out) {
     out->r = rd_reader_open(path);
-    if(!out->r) return false;
+    return out->r ? _pdb_open_file(out) : false;
+}
 
-    if(!pdb_read_superblock(out->r, &out->super_block)) return false;
-    if(!pdb_check_rootsize(&out->super_block)) return false;
-    if(!pdb_check_rootpageindex(out->r, &out->super_block)) return false;
-    if(!pdb_check_pagesize(&out->super_block)) return false;
-    if(!pdb_check_numblocks(out->r, &out->super_block)) return false;
-
-    if(!_pdb_read_directory(out)) {
-        pdb_close(out);
-        return false;
-    }
-
-    return true;
+bool pdb_open_data(const void* data, usize size, PDBFile* out) {
+    out->r = rd_reader_open_data(data, size);
+    return out->r ? _pdb_open_file(out) : false;
 }
 
 bool pdb_verify(PDBFile* pdb, const char* expected_guid, u32 expected_age) {
-    PDBStream s1 = {0};
-    if(!pdb_read_stream_by_index(pdb, PDB_STREAM_INFO, &s1)) return false;
-
-    PDBInfoHeader info;
-    bool ok = pdb_read_info_header(&s1, &info);
-    pdb_stream_destroy(&s1);
-    if(!ok) return false;
-
-    const char* guid_str =
-        rd_format("%02X%02X%02X%02X%02X%02X%02X%02X"
-                  "%02X%02X%02X%02X%02X%02X%02X%02X",
-                  info.Guid[0], info.Guid[1], info.Guid[2], info.Guid[3],
-                  info.Guid[4], info.Guid[5], info.Guid[6], info.Guid[7],
-                  info.Guid[8], info.Guid[9], info.Guid[10], info.Guid[11],
-                  info.Guid[12], info.Guid[13], info.Guid[14], info.Guid[15]);
-
-    if(strcmp(guid_str, expected_guid) != 0) {
+    if(strcmp(pdb->guid, expected_guid) != 0) {
         RD_LOG_FAIL("PDB GUID mismatch");
         return false;
     }
 
-    if(info.Age != expected_age) {
+    if(pdb->info.Age != expected_age) {
         RD_LOG_FAIL("PDB age mismatch: expected %u got %u", expected_age,
-                    info.Age);
+                    pdb->info.Age);
         return false;
     }
 
@@ -276,6 +288,7 @@ void pdb_close(PDBFile* pdb) {
     rd_free(pdb->stream_n_pages);
     rd_free(pdb->sizes);
     rd_reader_close(pdb->r);
+    rd_free(pdb->guid);
 
     *pdb = (PDBFile){0};
 }

@@ -10,11 +10,12 @@ add_library(${PROJECT_NAME} SHARED)
 
 target_sources(${PROJECT_NAME}
     PRIVATE 
-        dbi.c
+        format/dbi.c
+        format/pdb.c
+        format/symbols.c
         load.c
         module.c
-        pdb.c
-        symbols.c
+        request.c
 )
 
 target_link_libraries(${PROJECT_NAME} 

@@ -41,6 +41,9 @@ typedef struct PDBFile {
     u32* sizes;
     u32** stream_pages;  // stream_pages[i] = page list for stream i
     u32* stream_n_pages; // stream_n_pages[i] = page count for stream i
+
+    PDBInfoHeader info;
+    char* guid;
 } PDBFile;
 
 typedef struct PDBCvInfo70 {
@@ -67,6 +70,7 @@ void pdb_stream_destroy(PDBStream* s);
 
 // PDB file
 bool pdb_open(const char* path, PDBFile* out);
+bool pdb_open_data(const void* data, usize size, PDBFile* out);
 bool pdb_verify(PDBFile* pdb, const char* expected_guid, u32 expected_age);
 bool pdb_read_stream_by_index(PDBFile* pdb, u32 idx, PDBStream* out);
 void pdb_close(PDBFile* pdb);
