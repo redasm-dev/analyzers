@@ -8,6 +8,13 @@
 
 #define PDB_SERVER_CONNECT_TIMEOUT_MS 5000
 
+static const char* _pdb_embedded_filename(const char* embedded_path) {
+    const char* lsep = strrchr(embedded_path, '/');
+    const char* lsep_win = strrchr(embedded_path, '\\');
+    if(lsep_win > lsep) lsep = lsep_win;
+    return lsep ? lsep + 1 : embedded_path;
+}
+
 static bool _pdb_validate_path_component(const char* s) {
     if(!s || !*s) return false;
     if(strstr(s, "..")) return false; // no traversal
@@ -111,7 +118,7 @@ static void _pdb_load(RDContext* ctx, const char* pdb_input,
     // 2. same directory as the analyzed binary, with case fallback
     if(!pdb_ready) {
         resolved_buf = rd_scratch_create();
-        const char* basename = rd_path_filename(pdb_input);
+        const char* basename = _pdb_embedded_filename(pdb_input);
         const char* binary_dir = rd_get_working_dir(ctx);
 
         if(_pdb_resolve_local(binary_dir, basename, pdb_guid, pdb_age,
@@ -124,7 +131,7 @@ static void _pdb_load(RDContext* ctx, const char* pdb_input,
     // 3. symbol server, if network is enabled
     if(!pdb_ready) {
         server_reply = rd_scratch_create();
-        const char* basename = rd_path_filename(pdb_input);
+        const char* basename = _pdb_embedded_filename(pdb_input);
 
         if(_pdb_resolve_network(basename, pdb_guid, pdb_age, server_reply,
                                 &pdb)) {
