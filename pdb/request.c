@@ -18,7 +18,7 @@ static bool _pdb_fetch(const char* server, const char* pdb_name,
     RD_LOG_INFO("fetching %s", full_url);
 
     RDNetStatus st = rd_net_get(full_url, reply, timeout_ms);
-    if(st.ok && st.code == 200) return true;
+    if(rd_net_status_ok(st)) return true;
 
     RD_LOG_WARN("fetch failed (%s)", st.ok ? "HTTP error" : "transport error");
     return false;
