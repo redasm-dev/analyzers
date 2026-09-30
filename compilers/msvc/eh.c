@@ -195,8 +195,8 @@ static void _msvc_eh_find_throwinfos(RDContext* ctx, RDReader* r,
 
             if(ok) {
                 rd_library_type(ctx, addr, "EH_ThrowInfo", 0, RD_TYPE_NONE);
-                rd_library_name(ctx, addr,
-                                rd_format("__throwinfo_%" PRIX64, addr));
+                rd_auto_name(ctx, addr,
+                             rd_format("__throwinfo_%" PRIX64, addr));
 
                 if(ti.pmfnUnwind) {
                     RDAddress fn_va = imagebase + ti.pmfnUnwind;
@@ -238,7 +238,7 @@ static RDAddress _msvc_eh_process_funcinfo(RDContext* ctx, RDReader* r,
 
     // Validated: tag it and start seeding functions.
     rd_library_type(ctx, va, "EH_FuncInfo", 0, RD_TYPE_NONE);
-    rd_library_name(ctx, va, rd_format("__funcinfo_%" PRIX64, va));
+    rd_auto_name(ctx, va, rd_format("__funcinfo_%" PRIX64, va));
 
     RDAddressSlice tds = rd_get_all_address_by_type(ctx, "RTTI_TypeDescriptor");
     bool is64 = imagebase != 0;
