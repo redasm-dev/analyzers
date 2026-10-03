@@ -1,6 +1,7 @@
 #include "decompiler.h"
 #include "vb/components.h"
 #include "vb/format.h"
+#include <inttypes.h>
 #include <string.h>
 
 static const RDInstruction VB_ENTRY_MATCH[] = {
@@ -235,6 +236,17 @@ static void vb_decompiler_execute(RDContext* ctx) {
 
             if(!ok) break;
         }
+    }
+
+    // undefine the decoded 'junk' after the ThunRTMain call: it is code only on
+    // the first run (reanalysis finds data there and has nothing to cut)
+    RDAddress after = instrs[1].address + instrs[1].length;
+    RDFlags f;
+
+    if(rd_get_flags(ctx, after, &f) && rd_flags_has_code(f) &&
+       !rd_auto_undefine(ctx, instrs[1].address + instrs[1].length,
+                         RD_UNDEFINE_ALL)) {
+        RD_LOG_WARN("cannot clean the code after ThunRTMain @ %" PRIX64, after);
     }
 }
 
