@@ -218,7 +218,7 @@ static void _msvc_rtti_process_vtable(RDContext* ctx, RDReader* r,
             vtable_entryaddr = (RDAddress)addr;
         }
 
-        const RDSegment* seg = rd_find_segment(ctx, vtable_entryaddr);
+        const RDSegment* seg = rd_segment_find(ctx, vtable_entryaddr);
         if(!seg) break;
 
         const char* name = NULL;

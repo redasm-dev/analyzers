@@ -35,18 +35,18 @@ bool msvc_rtti_addressslice_contains(RDAddressSlice locators,
 }
 
 bool msvc_rtti_segment_ok(RDContext* ctx, RDAddress address) {
-    const RDSegment* seg = rd_find_segment(ctx, address);
+    const RDSegment* seg = rd_segment_find(ctx, address);
     return seg && rd_segment_has_perm(seg, RD_SP_R) &&
            !rd_segment_has_perm(seg, RD_SP_X);
 }
 
 bool msvc_rtti_segment_exec_ok(RDContext* ctx, RDAddress address) {
-    const RDSegment* seg = rd_find_segment(ctx, address);
+    const RDSegment* seg = rd_segment_find(ctx, address);
     return seg && rd_segment_has_perm(seg, RD_SP_X);
 }
 
 bool msvc_rtti_segment_fits(RDContext* ctx, RDAddress address, usize n) {
-    const RDSegment* seg = rd_find_segment(ctx, address);
+    const RDSegment* seg = rd_segment_find(ctx, address);
 
     if(!seg || !rd_segment_has_perm(seg, RD_SP_R) ||
        rd_segment_has_perm(seg, RD_SP_X))
