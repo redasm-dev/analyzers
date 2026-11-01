@@ -233,7 +233,8 @@ static void _msvc_rtti_process_vtable(RDContext* ctx, RDReader* r,
                 rd_library_type(ctx, vtable_addr, rd_integral_from_size(stride),
                                 0, RD_TYPE_PTR);
 
-                rd_add_xref(ctx, vtable_addr, vtable_entryaddr, RD_DR_ADDRESS);
+                rd_auto_xref_add(ctx, vtable_addr, vtable_entryaddr,
+                                 RD_DR_ADDRESS);
             }
 
             break;
@@ -248,7 +249,7 @@ static void _msvc_rtti_process_vtable(RDContext* ctx, RDReader* r,
         rd_library_name(ctx, vtable_addr, name);
         rd_library_type(ctx, vtable_addr, rd_integral_from_size(stride), 0,
                         RD_TYPE_PTR);
-        rd_add_xref(ctx, vtable_addr, vtable_entryaddr, RD_DR_ADDRESS);
+        rd_auto_xref_add(ctx, vtable_addr, vtable_entryaddr, RD_DR_ADDRESS);
 
         slot += stride;
         index++;
