@@ -29,7 +29,7 @@ bool pdb_fetch_from_server(const char* pdb_name, const char* guid, u32 age,
     if(!rd_net_is_enabled()) return false;
 
     const RDDatum* servers =
-        rd_datum_get_array(rd_settings_root(), "pdb.servers");
+        rd_datum_get_array(rd_settings_global(), "pdb.servers");
 
     RDScratchBuffer* url_buf = rd_scratch_create();
     bool ok = false;
